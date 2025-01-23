@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DumbWhois - Simple WHOIS Lookup</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .result-box {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .data-row:nth-child(even) {
+            background-color: var(--row-bg);
+        }
+        html.dark {
+            background-color: #1a1a1a;
+            color: #e5e5e5;
+        }
+        html.dark body {
+            background-color: #1a1a1a;
+        }
+        html.dark .bg-white {
+            background-color: #2d2d2d;
+        }
+        html.dark .text-gray-800 {
+            color: #e5e5e5;
+        }
+        html.dark .text-gray-600 {
+            color: #a0a0a0;
+        }
+        html.dark .bg-blue-50 {
+            background-color: #1e2a4a;
+        }
+        html.dark .bg-green-50 {
+            background-color: #1a342b;
+        }
+        html.dark .bg-yellow-50 {
+            background-color: #3d3524;
+        }
+        html.dark .bg-purple-50 {
+            background-color: #2d1f3d;
+        }
+        html.dark .bg-indigo-50 {
+            background-color: #1f2937;
+        }
+        html.dark .text-blue-800 {
+            color: #93c5fd;
+        }
+        html.dark .text-green-800 {
+            color: #6ee7b7;
+        }
+        html.dark .text-yellow-800 {
+            color: #fcd34d;
+        }
+        html.dark .text-purple-800 {
+            color: #c084fc;
+        }
+        html.dark .text-indigo-800 {
+            color: #818cf8;
+        }
+        html.dark .bg-green-100 {
+            background-color: #064e3b;
+        }
+        html.dark .text-green-800 {
+            color: #6ee7b7;
+        }
+        html.dark input {
+            background-color: #1a1a1a;
+            color: #e5e5e5;
+            border-color: #4a4a4a;
+        }
+        html.dark input::placeholder {
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen dark:bg-gray-900">
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex justify-center items-center mb-8 relative">
+            <h1 class="text-4xl font-bold text-gray-800">DumbWhois</h1>
+            <button onclick="toggleDarkMode()" class="absolute right-0 p-2 rounded-lg bg-gray-200 dark:bg-gray-700">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+            </button>
+        </div>
+        
+        <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-6">
+            <div class="mb-6">
+                <div class="flex gap-2">
+                    <input type="text" id="queryInput" 
+                           placeholder="Enter domain name, IP address, or ASN number..." 
+                           class="flex-1 p-2 border rounded-lg">
+                    <button onclick="performLookup()" 
+                            class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600">
+                        Lookup
+                    </button>
+                </div>
+                <p class="text-sm text-gray-600 mt-2">
+                    Examples: yahoo.com, 8.8.8.8, AS13335
+                </p>
+            </div>
+            
+            <div id="result" class="result-box hidden">
+                <div id="queryType" class="text-sm font-semibold text-gray-600 mb-2"></div>
+                <div id="resultContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const isDark = html.classList.contains('dark');
+            html.classList.toggle('dark');
+            localStorage.setItem('darkMode', !isDark);
+        }
+
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.documentElement.classList.add('dark');
+        }
+
+        function formatDate(dateString) {
+            return dateString ? new Date(dateString).toLocaleString() : 'N/A';
+        }
+
+        function formatWhoisData(data) {
+            let html = '<div class="space-y-4">';
+            
+            // Domain Info
+            html += `
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h2 class="text-lg font-bold text-blue-800 mb-2">Domain Information</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <div class="data-row p-2">
+                            <span class="font-semibold">Domain:</span> ${data.ldhName}
+                        </div>
+                        <div class="data-row p-2">
+                            <span class="font-semibold">Handle:</span> ${data.handle}
+                        </div>
+                    </div>
+                </div>`;
+
+                // Status
+                if (data.status && data.status.length > 0) {
+                    html += `
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h2 class="text-lg font-bold text-green-800 mb-2">Domain Status</h2>
+                            <div class="flex flex-wrap gap-2">
+                                ${data.status.map(status => 
+                                    `<span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm">${status}</span>`
+                                ).join('')}
+                            </div>
+                        </div>`;
+                }
+
+                // Important Dates
+                if (data.events && data.events.length > 0) {
+                    html += `
+                        <div class="bg-purple-50 p-4 rounded-lg">
+                            <h2 class="text-lg font-bold text-purple-800 mb-2">Important Dates</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                ${data.events.map(event => `
+                                    <div class="data-row p-2">
+                                        <span class="font-semibold">${event.eventAction}:</span> 
+                                        ${formatDate(event.eventDate)}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>`;
+                }
+
+                // Nameservers
+                if (data.nameservers && data.nameservers.length > 0) {
+                    html += `
+                        <div class="bg-yellow-50 p-4 rounded-lg">
+                            <h2 class="text-lg font-bold text-yellow-800 mb-2">Nameservers</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                ${data.nameservers.map(ns => `
+                                    <div class="data-row p-2">${ns.ldhName}</div>
+                                `).join('')}
+                            </div>
+                        </div>`;
+                }
+
+                // Registrar Info
+                if (data.entities && data.entities.length > 0) {
+                    const registrar = data.entities.find(e => e.roles.includes('registrar'));
+                    if (registrar) {
+                        html += `
+                            <div class="bg-indigo-50 p-4 rounded-lg">
+                                <h2 class="text-lg font-bold text-indigo-800 mb-2">Registrar Information</h2>
+                                <div class="space-y-2">
+                                    <div class="data-row p-2">
+                                        <span class="font-semibold">Registrar:</span> 
+                                        ${registrar.vcardArray[1].find(v => v[0] === 'fn')[3]}
+                                    </div>
+                                    ${registrar.entities ? registrar.entities.map(entity => `
+                                        <div class="data-row p-2">
+                                            <span class="font-semibold">Abuse Contact:</span> 
+                                            ${entity.vcardArray[1].find(v => v[0] === 'email')?.[3] || 'N/A'}
+                                        </div>
+                                    `).join('') : ''}
+                                </div>
+                            </div>`;
+                    }
+                }
+
+                html += '</div>';
+                return html;
+        }
+
+        function formatIPData(data) {
+            let html = '<div class="space-y-4">';
+            
+            // Basic Info
+            html += `
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h2 class="text-lg font-bold text-blue-800 mb-2">IP Information</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <div class="data-row p-2">
+                            <span class="font-semibold">IP Address:</span> ${data.ip}
+                        </div>
+                        <div class="data-row p-2">
+                            <span class="font-semibold">Network:</span> ${data.network}
+                        </div>
+                        <div class="data-row p-2">
+                            <span class="font-semibold">Version:</span> ${data.version}
+                        </div>
+                        <div class="data-row p-2">
+                            <span class="font-semibold">Organization:</span> ${data.org}
+                        </div>
+                    </div>
+                </div>`;
+
+                // Location Info
+                html += `
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h2 class="text-lg font-bold text-green-800 mb-2">Location Information</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <div class="data-row p-2">
+                                <span class="font-semibold">City:</span> ${data.city}
+                            </div>
+                            <div class="data-row p-2">
+                                <span class="font-semibold">Region:</span> ${data.region} (${data.region_code})
+                            </div>
+                            <div class="data-row p-2">
+                                <span class="font-semibold">Country:</span> ${data.country_name} (${data.country_code})
+                            </div>
+                            <div class="data-row p-2">
+                                <span class="font-semibold">Postal Code:</span> ${data.postal}
+                            </div>
+                            <div class="data-row p-2">
+                                <span class="font-semibold">Continent:</span> ${data.continent_code}
+                            </div>
+                            <div class="data-row p-2">
+                                <span class="font-semibold">Timezone:</span> ${data.timezone}
+                            </div>
+                        </div>
+                    </div>`;
+
+                // Coordinates
+                html += `
+                    <div class="bg-yellow-50 p-4 rounded-lg">
+                        <h2 class="text-lg font-bold text-yellow-800 mb-2">Geographic Coordinates</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <div class="data-row p-2">
+                                <span class="font-semibold">Latitude:</span> ${data.latitude}
+                            </div>
+                            <div class="data-row p-2">
+                                <span class="font-semibold">Longitude:</span> ${data.longitude}
+                            </div>
+                        </div>
+                    </div>`;
+
+                // Additional Info
+                html += `
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <h2 class="text-lg font-bold text-purple-800 mb-2">Additional Information</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <div class="data-row p-2">
+                                <span class="font-semibold">ASN:</span> ${data.asn}
+                            </div>
+                            <div class="data-row p-2">
+                                <span class="font-semibold">Languages:</span> ${data.languages}
+                            </div>
+                            <div class="data-row p-2">
+                                <span class="font-semibold">Currency:</span> ${data.currency} (${data.currency_name})
+                            </div>
+                            <div class="data-row p-2">
+                                <span class="font-semibold">Calling Code:</span> ${data.country_calling_code}
+                            </div>
+                        </div>
+                    </div>`;
+
+                html += '</div>';
+                return html;
+        }
+
+        function formatASNData(data) {
+            const asnData = data.data;
+            let html = '<div class="space-y-4">';
+            
+            // Basic Info
+            html += `
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h2 class="text-lg font-bold text-blue-800 mb-2">ASN Information</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <div class="data-row p-2">
+                            <span class="font-semibold">ASN:</span> AS${asnData.asn}
+                        </div>
+                        <div class="data-row p-2">
+                            <span class="font-semibold">Name:</span> ${asnData.name}
+                        </div>
+                        <div class="data-row p-2">
+                            <span class="font-semibold">Description:</span> ${asnData.description_short}
+                        </div>
+                        <div class="data-row p-2">
+                            <span class="font-semibold">Country:</span> ${asnData.country_code}
+                        </div>
+                    </div>
+                </div>`;
+
+                // Contact Info
+                html += `
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h2 class="text-lg font-bold text-green-800 mb-2">Contact Information</h2>
+                        <div class="space-y-2">
+                            <div class="data-row p-2">
+                                <span class="font-semibold">Website:</span> 
+                                <a href="${asnData.website}" target="_blank" class="text-blue-600 hover:underline">
+                                    ${asnData.website}
+                                </a>
+                            </div>
+                            <div class="data-row p-2">
+                                <span class="font-semibold">Email Contacts:</span><br>
+                                ${asnData.email_contacts.map(email => 
+                                    `<span class="ml-4">• ${email}</span>`
+                                ).join('<br>')}
+                            </div>
+                            <div class="data-row p-2">
+                                <span class="font-semibold">Abuse Contacts:</span><br>
+                                ${asnData.abuse_contacts.map(email => 
+                                    `<span class="ml-4">• ${email}</span>`
+                                ).join('<br>')}
+                            </div>
+                        </div>
+                    </div>`;
+
+                // Address
+                if (asnData.owner_address && asnData.owner_address.length > 0) {
+                    html += `
+                        <div class="bg-yellow-50 p-4 rounded-lg">
+                            <h2 class="text-lg font-bold text-yellow-800 mb-2">Owner Address</h2>
+                            <div class="p-2">
+                                ${asnData.owner_address.join('<br>')}
+                            </div>
+                        </div>`;
+                }
+
+                // RIR & IANA Info
+                html += `
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <h2 class="text-lg font-bold text-purple-800 mb-2">Registry Information</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <div class="data-row p-2">
+                                <span class="font-semibold">RIR Name:</span> ${asnData.rir_allocation.rir_name}
+                            </div>
+                            <div class="data-row p-2">
+                                <span class="font-semibold">Allocation Date:</span> ${formatDate(asnData.rir_allocation.date_allocated)}
+                            </div>
+                            <div class="data-row p-2">
+                                <span class="font-semibold">Traffic Ratio:</span> ${asnData.traffic_ratio || 'N/A'}
+                            </div>
+                            <div class="data-row p-2">
+                                <span class="font-semibold">Last Updated:</span> ${formatDate(asnData.date_updated)}
+                            </div>
+                        </div>
+                    </div>`;
+
+                html += '</div>';
+                return html;
+        }
+
+        async function performLookup() {
+            const query = document.getElementById('queryInput').value.trim();
+            const resultDiv = document.getElementById('result');
+            const resultContent = document.getElementById('resultContent');
+            const queryTypeDiv = document.getElementById('queryType');
+
+            if (!query) {
+                alert('Please enter a value to lookup');
+                return;
+            }
+
+            resultDiv.classList.remove('hidden');
+            queryTypeDiv.textContent = 'Loading...';
+            resultContent.innerHTML = '';
+
+            try {
+                const response = await fetch(`/api/lookup/${query}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    queryTypeDiv.textContent = 'Error';
+                    resultContent.innerHTML = `<div class="text-red-600">${data.error}${data.message ? '<br>' + data.message : ''}</div>`;
+                } else {
+                    queryTypeDiv.textContent = `Type: ${data.type.toUpperCase()}`;
+                    
+                    switch (data.type) {
+                        case 'whois':
+                            resultContent.innerHTML = formatWhoisData(data.data);
+                            break;
+                        case 'ip':
+                            resultContent.innerHTML = formatIPData(data.data);
+                            break;
+                        case 'asn':
+                            resultContent.innerHTML = formatASNData(data.data);
+                            break;
+                        default:
+                            resultContent.innerHTML = `<pre class="whitespace-pre-wrap">${JSON.stringify(data.data, null, 2)}</pre>`;
+                    }
+                }
+            } catch (error) {
+                queryTypeDiv.textContent = 'Error';
+                resultContent.innerHTML = '<div class="text-red-600">Error performing lookup. Please try again.</div>';
+            }
+        }
+
+        document.getElementById('queryInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                performLookup();
+            }
+        });
+    </script>
+</body>
+</html> 
