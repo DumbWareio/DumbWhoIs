@@ -5,7 +5,7 @@ A simple web application for looking up WHOIS, IP, and ASN information using fre
 ## Features
 
 - 🔍 Automatic detection of query type (Domain, IP, or ASN)
-- 🌐 WHOIS domain lookup using RDAP protocol
+- 🌐 Direct WHOIS domain lookup with support for all TLDs
 - 🌍 IP geolocation and information lookup
 - 🔢 ASN (Autonomous System Number) details
 - 🎨 Clean and modern UI with dark mode support
@@ -15,12 +15,13 @@ A simple web application for looking up WHOIS, IP, and ASN information using fre
 
 ## APIs Used
 
-The application uses the following free APIs:
+The application uses the following free services:
 
-- **WHOIS/RDAP Lookup**: [rdap.org](https://rdap.org)
-  - Registration Data Access Protocol (RDAP) for domain information
+- **WHOIS Lookup**: Direct WHOIS protocol
+  - Native WHOIS queries to authoritative servers
+  - Support for all TLDs including ccTLDs
   - No API key required
-  - Rate limited to prevent abuse
+  - No rate limits
 
 - **IP Lookup**: [ipapi.co](https://ipapi.co)
   - Provides geolocation and organization information
@@ -84,7 +85,7 @@ docker-compose up -d
 
 1. Visit `http://localhost:3000` in your browser
 2. Enter any of the following:
-   - Domain name (e.g., `yahoo.com`)
+   - Domain name (e.g., `yahoo.com`, `europa.eu`)
    - IP address (e.g., `8.8.8.8`)
    - ASN number (e.g., `AS13335` or just `13335`)
 3. The application will automatically detect the type of query and display formatted results
@@ -92,14 +93,14 @@ docker-compose up -d
 
 ## Example Queries
 
-- **Domain Lookup**: `google.com`, `microsoft.com`, `github.com`
+- **Domain Lookup**: `google.com`, `europa.eu`, `bbc.co.uk`
 - **IP Lookup**: `8.8.8.8`, `1.1.1.1`, `140.82.121.4`
 - **ASN Lookup**: `AS13335`, `AS15169`, `AS8075`
 
 ## Rate Limits
 
-Please note that the APIs used have rate limits:
-- RDAP: Reasonable use policy
+Please note that some APIs used have rate limits:
+- WHOIS: No rate limits (uses direct protocol)
 - ipapi.co: 1000 requests per day (free tier)
 - BGPView: Reasonable use policy
 
