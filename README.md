@@ -2,6 +2,9 @@
 
 A simple web application for looking up WHOIS, IP, and ASN information using free APIs. The application automatically detects the type of query and provides formatted results with a clean, modern UI that supports both light and dark modes.
 
+![image](https://github.com/user-attachments/assets/1f53b683-8974-4c83-9f14-d97aa862d531)
+
+
 ## Features
 
 - 🔍 Automatic detection of query type (Domain, IP, or ASN)
