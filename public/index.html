@@ -171,6 +171,22 @@
                         </div>`;
                 }
 
+                // IP Addresses
+                if (data.ipAddresses && data.ipAddresses.length > 0) {
+                    html += `
+                        <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
+                            <h2 class="text-lg font-bold text-red-800 dark:text-red-400 mb-2">IP Addresses</h2>
+                            <div class="flex flex-wrap gap-2">
+                                ${data.ipAddresses.map(ip => 
+                                    `<button onclick="document.getElementById('queryInput').value='${ip}'; performLookup()" 
+                                             class="bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200 px-3 py-1 rounded-full text-sm hover:bg-red-200 dark:hover:bg-red-700 cursor-pointer transition-colors">
+                                        ${ip}
+                                     </button>`
+                                ).join('')}
+                            </div>
+                        </div>`;
+                }
+
                 // Important Dates
                 if (data.events && data.events.length > 0) {
                     html += `
