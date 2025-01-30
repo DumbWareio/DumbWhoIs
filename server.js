@@ -34,7 +34,7 @@ function detectQueryType(query) {
 }
 
 // Helper function to parse WHOIS data
-function parseWhoisData(data, domain) {
+async function parseWhoisData(data, domain) {
     // Split into lines and create key-value pairs
     const result = {
         domainName: domain,
@@ -44,8 +44,62 @@ function parseWhoisData(data, domain) {
         lastUpdated: '',
         status: [],
         nameservers: [],
+        ipAddresses: [],
         raw: data
     };
+
+    // Get the IP addresses directly from DNS lookup
+    try {
+        const dns = require('dns').promises;
+        result.ipAddresses = await dns.resolve4(domain);
+    } catch (e) {
+        // If DNS lookup fails, don't add any IPs
+        result.ipAddresses = [];
+    }
+
+    // Regular expression for IPv4 addresses
+    const ipv4Regex = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/g;
+
+    // First try to find IPs in specific fields that might contain them
+    const lines = data.split('\n');
+    for (const line of lines) {
+        const trimmedLine = line.trim().toLowerCase();
+        if (trimmedLine.includes('ip address') || 
+            trimmedLine.includes('a record') || 
+            trimmedLine.includes('addresses') ||
+            trimmedLine.includes('host') ||
+            trimmedLine.includes('dns')) {
+            const ipsInLine = line.match(ipv4Regex);
+            if (ipsInLine) {
+                result.ipAddresses.push(...ipsInLine);
+            }
+        }
+    }
+
+    // Then try to resolve nameservers to IPs using DNS
+    if (result.nameservers.length > 0) {
+        const dns = require('dns').promises;
+        const nsLookupPromises = result.nameservers.map(async ns => {
+            try {
+                const records = await dns.resolve4(ns);
+                return records;
+            } catch (e) {
+                return [];
+            }
+        });
+        
+        Promise.all(nsLookupPromises)
+            .then(nsIps => {
+                const flatIps = nsIps.flat();
+                if (flatIps.length > 0) {
+                    result.ipAddresses.push(...flatIps);
+                }
+            })
+            .catch(() => {});
+    }
+
+    // Remove duplicates
+    result.ipAddresses = [...new Set(result.ipAddresses)];
 
     // Special handling for .eu domains
     if (domain.toLowerCase().endsWith('.eu')) {
@@ -167,13 +221,14 @@ app.get('/api/lookup/:query', async (req, res) => {
                 }
 
                 const whoisData = await lookupPromise(query, options);
-                const parsedData = parseWhoisData(whoisData, query);
+                const parsedData = await parseWhoisData(whoisData, query);
                 
                 response = {
                     data: {
                         ldhName: parsedData.domainName,
                         handle: query,
                         status: parsedData.status,
+                        ipAddresses: parsedData.ipAddresses,
                         events: [
                             {
                                 eventAction: 'registration',
