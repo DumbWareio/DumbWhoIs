@@ -42,7 +42,7 @@ The application uses the following free services:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/abiteman/dumbwhois.git
+git clone https://github.com/dumbwareio/dumbwhois.git
 cd dumbwhois
 ```
 
