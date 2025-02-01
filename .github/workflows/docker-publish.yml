@@ -34,7 +34,7 @@ jobs:
   push:
     runs-on: ubuntu-latest
     needs: build
-    if: github.repository_owner == github.actor  # Only push for repository owner, not forks
+    if: github.repository_owner == github.actor || github.repository_owner == 'dumbwareio' # Only push for repository owner, not forks
 
     steps:
       # Step 4: Log in to Docker Hub (only for non-forked repositories)
