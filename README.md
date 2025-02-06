@@ -129,4 +129,3 @@ The application automatically handles rate limits by falling back to alternative
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
-
