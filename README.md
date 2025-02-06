@@ -9,12 +9,16 @@ A simple web application for looking up WHOIS, IP, and ASN information using fre
 
 - 🔍 Automatic detection of query type (Domain, IP, or ASN)
 - 🌐 Direct WHOIS domain lookup with support for all TLDs
-- 🌍 IP geolocation and information lookup
+- 🌍 IP geolocation with multiple fallback services
 - 🔢 ASN (Autonomous System Number) details
 - 🎨 Clean and modern UI with dark mode support
 - 📱 Responsive design for mobile and desktop
 - 🚫 No authentication required
 - ⚙️ Environment variable configuration
+- 🔄 Automatic service fallback for IP lookups
+- 🌐 Full IPv6 support
+- 📋 Clear source attribution for all lookups
+- 🔍 DNS resolution for domain IP addresses
 
 ## APIs Used
 
@@ -23,13 +27,23 @@ The application uses the following free services:
 - **WHOIS Lookup**: Direct WHOIS protocol
   - Native WHOIS queries to authoritative servers
   - Support for all TLDs including ccTLDs
+  - DNS resolution for IPv4 and IPv6 addresses
   - No API key required
   - No rate limits
 
-- **IP Lookup**: [ipapi.co](https://ipapi.co)
-  - Provides geolocation and organization information
-  - Free tier with rate limits
-  - No API key required
+- **IP Lookup**: Multiple services with automatic fallback
+  1. [ipapi.co](https://ipapi.co)
+     - Primary service for IP geolocation
+     - Free tier with rate limits
+     - No API key required
+  2. [ip-api.com](https://ip-api.com)
+     - First fallback service
+     - Free for non-commercial use
+     - No API key required
+  3. [ipwho.is](https://ipwho.is)
+     - Second fallback service
+     - Free with no rate limits
+     - No API key required
 
 - **ASN Lookup**: [BGPView API](https://bgpview.docs.apiary.io/)
   - Provides ASN details and related information
@@ -89,7 +103,7 @@ docker-compose up -d
 1. Visit `http://localhost:3000` in your browser
 2. Enter any of the following:
    - Domain name (e.g., `yahoo.com`, `europa.eu`)
-   - IP address (e.g., `8.8.8.8`)
+   - IP address (IPv4 or IPv6, e.g., `8.8.8.8`, `2001:4860:4860::8888`)
    - ASN number (e.g., `AS13335` or just `13335`)
 3. The application will automatically detect the type of query and display formatted results
 4. Toggle between light and dark modes using the moon icon in the top-right corner
@@ -97,7 +111,8 @@ docker-compose up -d
 ## Example Queries
 
 - **Domain Lookup**: `google.com`, `europa.eu`, `bbc.co.uk`
-- **IP Lookup**: `8.8.8.8`, `1.1.1.1`, `140.82.121.4`
+- **IPv4 Lookup**: `8.8.8.8`, `1.1.1.1`, `140.82.121.4`
+- **IPv6 Lookup**: `2001:4860:4860::8888`, `2606:4700:4700::1111`
 - **ASN Lookup**: `AS13335`, `AS15169`, `AS8075`
 
 ## Rate Limits
@@ -105,7 +120,11 @@ docker-compose up -d
 Please note that some APIs used have rate limits:
 - WHOIS: No rate limits (uses direct protocol)
 - ipapi.co: 1000 requests per day (free tier)
+- ip-api.com: 45 requests per minute
+- ipwho.is: No rate limits
 - BGPView: Reasonable use policy
+
+The application automatically handles rate limits by falling back to alternative services when needed.
 
 ## Contributing
 
