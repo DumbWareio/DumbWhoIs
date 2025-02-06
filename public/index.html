@@ -73,6 +73,48 @@
         html.dark input::placeholder {
             color: #6b7280;
         }
+        
+        /* Print styles */
+        @media print {
+            body {
+                background-color: white !important;
+                color: black !important;
+            }
+            .container {
+                max-width: 100% !important;
+                padding: 0 !important;
+            }
+            .result-box {
+                max-height: none !important;
+                overflow: visible !important;
+            }
+            .bg-white {
+                background-color: white !important;
+                box-shadow: none !important;
+            }
+            #queryInput, #lookupButton, #printButton {
+                display: none !important;
+            }
+            .bg-blue-50, .bg-green-50, .bg-yellow-50, .bg-purple-50, .bg-indigo-50, .bg-red-50 {
+                background-color: white !important;
+                border: 1px solid #ddd !important;
+                margin-bottom: 1rem !important;
+            }
+            .text-blue-800, .text-green-800, .text-yellow-800, .text-purple-800, .text-indigo-800, .text-red-800 {
+                color: black !important;
+            }
+            button.bg-red-100 {
+                background-color: white !important;
+                border: 1px solid #ddd !important;
+                color: black !important;
+            }
+            #themeIcon {
+                display: none !important;
+            }
+            @page {
+                margin: 1cm;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen dark:bg-gray-900">
@@ -91,8 +133,17 @@
                            placeholder="Enter domain name, IP address, or ASN number..." 
                            class="flex-1 p-2 border rounded-lg">
                     <button onclick="performLookup()" 
+                            id="lookupButton"
                             class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600">
                         Lookup
+                    </button>
+                    <button onclick="printResults()" 
+                            id="printButton"
+                            class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4 5a2 2 0 00-2 2v7a2 2 0 002 2h1v-2a2 2 0 012-2h6a2 2 0 012 2v2h1a2 2 0 002-2V7a2 2 0 00-2-2H4zm3 11v-2h6v2H7zm0-4a2 2 0 00-2 2v2H4a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v7a2 2 0 01-2 2h-1v-2a2 2 0 00-2-2H7z" clip-rule="evenodd" />
+                        </svg>
+                        Print
                     </button>
                 </div>
                 <p class="text-sm text-gray-600 mt-2">
@@ -443,6 +494,7 @@
             const resultDiv = document.getElementById('result');
             const resultContent = document.getElementById('resultContent');
             const queryTypeDiv = document.getElementById('queryType');
+            const printButton = document.getElementById('printButton');
 
             if (!query) {
                 alert('Please enter a value to lookup');
@@ -450,6 +502,7 @@
             }
 
             resultDiv.classList.remove('hidden');
+            printButton.classList.add('hidden');
             queryTypeDiv.textContent = 'Loading...';
             resultContent.innerHTML = '';
 
@@ -480,11 +533,21 @@
                         default:
                             resultContent.innerHTML = `<pre class="whitespace-pre-wrap">${JSON.stringify(data.data, null, 2)}</pre>`;
                     }
+                    // Show print button after successful lookup
+                    printButton.classList.remove('hidden');
                 }
             } catch (error) {
                 queryTypeDiv.textContent = 'Error';
                 resultContent.innerHTML = '<div class="text-red-600">Error performing lookup. Please try again.</div>';
             }
+        }
+
+        function printResults() {
+            const title = document.getElementById('queryInput').value.trim();
+            const originalTitle = document.title;
+            document.title = `DumbWhois - ${title}`;
+            window.print();
+            document.title = originalTitle;
         }
 
         document.getElementById('queryInput').addEventListener('keypress', (e) => {
