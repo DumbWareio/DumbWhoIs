@@ -14,9 +14,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Set up Docker Buildx
+      # Step 2: Set up Docker Buildx with container driver
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
+        with:
+          driver: docker-container # Ensure multi-platform support
+          install: true
 
       # Step 3: Build Docker Image (for all cases, including forks)
       - name: Build Docker Image
@@ -37,14 +40,25 @@ jobs:
     if: github.repository_owner == github.actor || github.repository_owner == 'dumbwareio' # Only push for repository owner, not forks
 
     steps:
-      # Step 4: Log in to Docker Hub (only for non-forked repositories)
+      # Step 4: Check out the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 5: Set up Docker Buildx again (ensuring multi-platform support)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        with:
+          driver: docker-container
+          install: true
+
+      # Step 6: Log in to Docker Hub (only for non-forked repositories)
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Step 5: Push Docker Image (only for repository owner)
+      # Step 7: Push Docker Image (only for repository owner)
       - name: Push Docker Image
         uses: docker/build-push-action@v4
         with:
