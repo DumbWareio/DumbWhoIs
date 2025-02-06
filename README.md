@@ -9,16 +9,12 @@ A simple web application for looking up WHOIS, IP, and ASN information using fre
 
 - 🔍 Automatic detection of query type (Domain, IP, or ASN)
 - 🌐 Direct WHOIS domain lookup with support for all TLDs
-- 🌍 IP geolocation and information lookup with multiple fallback services
+- 🌍 IP geolocation and information lookup
 - 🔢 ASN (Autonomous System Number) details
 - 🎨 Clean and modern UI with dark mode support
 - 📱 Responsive design for mobile and desktop
 - 🚫 No authentication required
 - ⚙️ Environment variable configuration
-- 🔄 Automatic fallback between multiple IP lookup services
-- 🌐 IPv6 support for lookups and display
-- 📋 Clear source attribution for all lookups
-- 🔍 DNS resolution for domain IP addresses (both A and AAAA records)
 
 ## APIs Used
 
@@ -29,21 +25,11 @@ The application uses the following free services:
   - Support for all TLDs including ccTLDs
   - No API key required
   - No rate limits
-  - DNS resolution for both IPv4 and IPv6 addresses
 
-- **IP Lookup**: Multiple services with automatic fallback
-  1. [ipapi.co](https://ipapi.co)
-     - Primary service for IP geolocation
-     - Free tier with rate limits
-     - No API key required
-  2. [ip-api.com](https://ip-api.com)
-     - First fallback service
-     - Free for non-commercial use
-     - No API key required
-  3. [ipwho.is](https://ipwho.is)
-     - Second fallback service
-     - Free with no rate limits
-     - No API key required
+- **IP Lookup**: [ipapi.co](https://ipapi.co)
+  - Provides geolocation and organization information
+  - Free tier with rate limits
+  - No API key required
 
 - **ASN Lookup**: [BGPView API](https://bgpview.docs.apiary.io/)
   - Provides ASN details and related information
@@ -56,7 +42,7 @@ The application uses the following free services:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/abiteman/dumbwhois.git
+git clone https://github.com/dumbwareio/dumbwhois.git
 cd dumbwhois
 ```
 
@@ -103,7 +89,7 @@ docker-compose up -d
 1. Visit `http://localhost:3000` in your browser
 2. Enter any of the following:
    - Domain name (e.g., `yahoo.com`, `europa.eu`)
-   - IP address (IPv4 or IPv6, e.g., `8.8.8.8`, `2001:4860:4860::8888`)
+   - IP address (e.g., `8.8.8.8`)
    - ASN number (e.g., `AS13335` or just `13335`)
 3. The application will automatically detect the type of query and display formatted results
 4. Toggle between light and dark modes using the moon icon in the top-right corner
@@ -111,8 +97,7 @@ docker-compose up -d
 ## Example Queries
 
 - **Domain Lookup**: `google.com`, `europa.eu`, `bbc.co.uk`
-- **IPv4 Lookup**: `8.8.8.8`, `1.1.1.1`, `140.82.121.4`
-- **IPv6 Lookup**: `2001:4860:4860::8888`, `2606:4700:4700::1111`
+- **IP Lookup**: `8.8.8.8`, `1.1.1.1`, `140.82.121.4`
 - **ASN Lookup**: `AS13335`, `AS15169`, `AS8075`
 
 ## Rate Limits
@@ -120,11 +105,7 @@ docker-compose up -d
 Please note that some APIs used have rate limits:
 - WHOIS: No rate limits (uses direct protocol)
 - ipapi.co: 1000 requests per day (free tier)
-- ip-api.com: 45 requests per minute
-- ipwho.is: No rate limits
 - BGPView: Reasonable use policy
-
-The application automatically handles rate limits by falling back to alternative services when needed.
 
 ## Contributing
 
