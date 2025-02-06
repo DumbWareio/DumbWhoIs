@@ -96,7 +96,7 @@
                     </button>
                 </div>
                 <p class="text-sm text-gray-600 mt-2">
-                    Examples: yahoo.com, 8.8.8.8, AS13335
+                    Examples: yahoo.com, 8.8.8.8, 2001:4860:4860::8888, AS13335
                 </p>
             </div>
             
@@ -172,19 +172,42 @@
                 }
 
                 // IP Addresses
-                if (data.ipAddresses && data.ipAddresses.length > 0) {
+                if ((data.ipAddresses?.v4?.length > 0) || (data.ipAddresses?.v6?.length > 0)) {
                     html += `
                         <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
-                            <h2 class="text-lg font-bold text-red-800 dark:text-red-400 mb-2">IP Addresses</h2>
-                            <div class="flex flex-wrap gap-2">
-                                ${data.ipAddresses.map(ip => 
-                                    `<button onclick="document.getElementById('queryInput').value='${ip}'; performLookup()" 
-                                             class="bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200 px-3 py-1 rounded-full text-sm hover:bg-red-200 dark:hover:bg-red-700 cursor-pointer transition-colors">
-                                        ${ip}
-                                     </button>`
-                                ).join('')}
-                            </div>
-                        </div>`;
+                            <h2 class="text-lg font-bold text-red-800 dark:text-red-400 mb-2">IP Addresses</h2>`;
+                    
+                    if (data.ipAddresses.v4?.length > 0) {
+                        html += `
+                            <div class="mb-3">
+                                <h3 class="text-sm font-semibold text-red-700 dark:text-red-300 mb-2">IPv4</h3>
+                                <div class="flex flex-wrap gap-2">
+                                    ${data.ipAddresses.v4.map(ip => 
+                                        `<button onclick="document.getElementById('queryInput').value='${ip}'; performLookup()" 
+                                                 class="bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200 px-3 py-1 rounded-full text-sm hover:bg-red-200 dark:hover:bg-red-700 cursor-pointer transition-colors">
+                                            ${ip}
+                                         </button>`
+                                    ).join('')}
+                                </div>
+                            </div>`;
+                    }
+                    
+                    if (data.ipAddresses.v6?.length > 0) {
+                        html += `
+                            <div>
+                                <h3 class="text-sm font-semibold text-red-700 dark:text-red-300 mb-2">IPv6</h3>
+                                <div class="flex flex-wrap gap-2">
+                                    ${data.ipAddresses.v6.map(ip => 
+                                        `<button onclick="document.getElementById('queryInput').value='${ip}'; performLookup()" 
+                                                 class="bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200 px-3 py-1 rounded-full text-sm hover:bg-red-200 dark:hover:bg-red-700 cursor-pointer transition-colors">
+                                            ${ip}
+                                         </button>`
+                                    ).join('')}
+                                </div>
+                            </div>`;
+                    }
+                    
+                    html += `</div>`;
                 }
 
                 // Important Dates
@@ -438,7 +461,11 @@
                     queryTypeDiv.textContent = 'Error';
                     resultContent.innerHTML = `<div class="text-red-600">${data.error}${data.message ? '<br>' + data.message : ''}</div>`;
                 } else {
-                    queryTypeDiv.textContent = `Type: ${data.type.toUpperCase()}`;
+                    queryTypeDiv.textContent = `Type: ${data.type.toUpperCase()}${
+                        data.type === 'ip' ? ` (Source: ${data.data.source})` :
+                        data.type === 'asn' ? ' (Source: BGPView)' :
+                        data.type === 'whois' ? ' (Source: Direct WHOIS Server)' : ''
+                    }`;
                     
                     switch (data.type) {
                         case 'whois':

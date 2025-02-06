@@ -18,16 +18,26 @@ app.use(express.static('public'));
 
 // Helper function to detect query type
 function detectQueryType(query) {
+    // Clean up the query - remove brackets if present
+    const cleanQuery = query.replace(/^\[|\]$/g, '');
+
     // ASN pattern (AS followed by numbers)
-    if (/^(AS|as)?\d+$/i.test(query)) {
+    if (/^(AS|as)?\d+$/i.test(cleanQuery)) {
         return 'asn';
     }
-    // IP pattern (basic IPv4 check)
-    if (/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(query)) {
+
+    // IPv6 pattern (with optional CIDR)
+    if (/^(?:(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9]))(?:\/\d{1,3})?$/.test(cleanQuery)) {
         return 'ip';
     }
+
+    // IPv4 pattern (with optional CIDR)
+    if (/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(?:\/\d{1,2})?$/.test(cleanQuery)) {
+        return 'ip';
+    }
+
     // Domain pattern (anything with a dot that's not an IP)
-    if (query.includes('.')) {
+    if (cleanQuery.includes('.')) {
         return 'whois';
     }
     return 'unknown';
@@ -44,21 +54,29 @@ async function parseWhoisData(data, domain) {
         lastUpdated: '',
         status: [],
         nameservers: [],
-        ipAddresses: [],
+        ipAddresses: {
+            v4: [],
+            v6: []
+        },
         raw: data
     };
 
-    // Get the IP addresses directly from DNS lookup
+    // Get both IPv4 and IPv6 addresses from DNS lookup
     try {
         const dns = require('dns').promises;
-        result.ipAddresses = await dns.resolve4(domain);
+        const [ipv4Addresses, ipv6Addresses] = await Promise.all([
+            dns.resolve4(domain).catch(() => []),
+            dns.resolve6(domain).catch(() => [])
+        ]);
+        result.ipAddresses.v4 = ipv4Addresses;
+        result.ipAddresses.v6 = ipv6Addresses;
     } catch (e) {
-        // If DNS lookup fails, don't add any IPs
-        result.ipAddresses = [];
+        // If DNS lookup fails, keep arrays empty
     }
 
-    // Regular expression for IPv4 addresses
+    // Regular expressions for IP addresses
     const ipv4Regex = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/g;
+    const ipv6Regex = /(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])/g;
 
     // First try to find IPs in specific fields that might contain them
     const lines = data.split('\n');
@@ -66,40 +84,22 @@ async function parseWhoisData(data, domain) {
         const trimmedLine = line.trim().toLowerCase();
         if (trimmedLine.includes('ip address') || 
             trimmedLine.includes('a record') || 
+            trimmedLine.includes('aaaa record') ||
             trimmedLine.includes('addresses') ||
             trimmedLine.includes('host') ||
             trimmedLine.includes('dns')) {
-            const ipsInLine = line.match(ipv4Regex);
-            if (ipsInLine) {
-                result.ipAddresses.push(...ipsInLine);
-            }
+            
+            const ipv4InLine = line.match(ipv4Regex);
+            const ipv6InLine = line.match(ipv6Regex);
+            
+            if (ipv4InLine) result.ipAddresses.v4.push(...ipv4InLine);
+            if (ipv6InLine) result.ipAddresses.v6.push(...ipv6InLine);
         }
     }
 
-    // Then try to resolve nameservers to IPs using DNS
-    if (result.nameservers.length > 0) {
-        const dns = require('dns').promises;
-        const nsLookupPromises = result.nameservers.map(async ns => {
-            try {
-                const records = await dns.resolve4(ns);
-                return records;
-            } catch (e) {
-                return [];
-            }
-        });
-        
-        Promise.all(nsLookupPromises)
-            .then(nsIps => {
-                const flatIps = nsIps.flat();
-                if (flatIps.length > 0) {
-                    result.ipAddresses.push(...flatIps);
-                }
-            })
-            .catch(() => {});
-    }
-
     // Remove duplicates
-    result.ipAddresses = [...new Set(result.ipAddresses)];
+    result.ipAddresses.v4 = [...new Set(result.ipAddresses.v4)];
+    result.ipAddresses.v6 = [...new Set(result.ipAddresses.v6)];
 
     // Special handling for .eu domains
     if (domain.toLowerCase().endsWith('.eu')) {
@@ -200,6 +200,88 @@ async function parseWhoisData(data, domain) {
     return result;
 }
 
+// IP lookup services with fallbacks
+const ipLookupServices = [
+    {
+        name: 'ipapi.co',
+        url: (ip) => `https://ipapi.co/${ip}/json/`,
+        transform: (data) => ({
+            ...data,
+            source: 'ipapi.co'
+        })
+    },
+    {
+        name: 'ip-api.com',
+        url: (ip) => `http://ip-api.com/json/${ip}`,
+        transform: (data) => ({
+            ip: data.query,
+            version: data.query.includes(':') ? 'IPv6' : 'IPv4',
+            city: data.city,
+            region: data.regionName,
+            region_code: data.region,
+            country_code: data.countryCode,
+            country_name: data.country,
+            postal: data.zip,
+            latitude: data.lat,
+            longitude: data.lon,
+            timezone: data.timezone,
+            org: data.org || data.isp,
+            asn: data.as,
+            source: 'ip-api.com'
+        })
+    },
+    {
+        name: 'ipwho.is',
+        url: (ip) => `https://ipwho.is/${ip}`,
+        transform: (data) => ({
+            ip: data.ip,
+            version: data.type,
+            city: data.city,
+            region: data.region,
+            region_code: data.region_code,
+            country_code: data.country_code,
+            country_name: data.country,
+            postal: data.postal,
+            latitude: data.latitude,
+            longitude: data.longitude,
+            timezone: data.timezone.id,
+            org: data.connection.org,
+            asn: data.connection.asn,
+            source: 'ipwho.is'
+        })
+    }
+];
+
+// Helper function to try IP lookup services in sequence
+async function tryIpLookup(ip) {
+    // Remove brackets and CIDR notation for the lookup
+    const cleanIp = ip.replace(/^\[|\]$/g, '').replace(/\/\d+$/, '');
+    let lastError = null;
+    
+    for (const service of ipLookupServices) {
+        try {
+            console.log(`Trying IP lookup with ${service.name}...`);
+            const response = await axios.get(service.url(cleanIp));
+            
+            // Check if the service returned an error
+            if (response.data.error) {
+                throw new Error(response.data.message || 'Service returned error');
+            }
+            
+            // Transform the data to our standard format
+            return service.transform(response.data);
+        } catch (error) {
+            console.log(`${service.name} lookup failed:`, error.message);
+            lastError = error;
+            // Continue to next service
+            continue;
+        }
+    }
+    
+    // If we get here, all services failed
+    throw lastError;
+}
+
 // Universal lookup endpoint
 app.get('/api/lookup/:query', async (req, res) => {
     const query = req.params.query;
@@ -259,7 +341,8 @@ app.get('/api/lookup/:query', async (req, res) => {
                 };
                 break;
             case 'ip':
-                response = await axios.get(`https://ipapi.co/${query}/json/`);
+                const ipData = await tryIpLookup(query);
+                response = { data: ipData };
                 break;
             case 'asn':
                 // Remove 'AS' prefix if present
@@ -275,12 +358,24 @@ app.get('/api/lookup/:query', async (req, res) => {
         res.json({ type: queryType, data: response.data });
     } catch (error) {
         console.error('Error details:', error);
-        if (error.response && error.response.status === 404) {
-            res.status(404).json({ error: `${queryType.toUpperCase()} not found` });
+        if (error.response) {
+            if (error.response.status === 429) {
+                res.status(429).json({ 
+                    error: 'Rate limit exceeded', 
+                    message: 'All IP lookup services are currently rate limited. Please try again later.'
+                });
+            } else if (error.response.status === 404) {
+                res.status(404).json({ error: `${queryType.toUpperCase()} not found` });
+            } else {
+                res.status(error.response.status).json({ 
+                    error: `Error fetching ${queryType.toUpperCase()} data`, 
+                    message: error.response.data?.message || error.message 
+                });
+            }
         } else {
             res.status(500).json({ 
                 error: `Error fetching ${queryType.toUpperCase()} data`, 
-                details: error.message 
+                message: error.message 
             });
         }
     }
