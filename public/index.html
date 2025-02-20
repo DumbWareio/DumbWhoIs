@@ -555,6 +555,16 @@
                 performLookup();
             }
         });
+
+        // Check for lookup query parameter on page load
+        window.addEventListener('load', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const lookupQuery = urlParams.get('lookup');
+            if (lookupQuery) {
+                document.getElementById('queryInput').value = lookupQuery;
+                performLookup();
+            }
+        });
     </script>
 </body>
 </html> 
