@@ -19,6 +19,7 @@ A simple web application for looking up WHOIS, IP, and ASN information using fre
 - 🌐 Full IPv6 support
 - 📋 Clear source attribution for all lookups
 - 🔍 DNS resolution for domain IP addresses
+- 🔗 URL query parameter support for direct lookups
 
 ## APIs Used
 
@@ -107,6 +108,11 @@ docker-compose up -d
    - ASN number (e.g., `AS13335` or just `13335`)
 3. The application will automatically detect the type of query and display formatted results
 4. Toggle between light and dark modes using the moon icon in the top-right corner
+
+You can also perform direct lookups by using the `lookup` query parameter in the URL:
+- Domain lookup: `http://localhost:3000/?lookup=google.com`
+- IP lookup: `http://localhost:3000/?lookup=8.8.8.8`
+- ASN lookup: `http://localhost:3000/?lookup=AS13335`
 
 ## Example Queries
 
