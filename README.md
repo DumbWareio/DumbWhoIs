@@ -128,7 +128,7 @@ Please note that some APIs used have rate limits:
 - ipapi.co: 1000 requests per day (free tier)
 - ip-api.com: 45 requests per minute
 - ipwho.is: No rate limits
-- BGPView: Reasonable use policy
+- BGPView: unknown rate limit waiting for reply.
 
 The application automatically handles rate limits by falling back to alternative services when needed.
 
