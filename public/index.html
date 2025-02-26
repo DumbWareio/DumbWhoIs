@@ -115,6 +115,26 @@
                 margin: 1cm;
             }
         }
+
+        /* Add CSS for permalink icons */
+        .permalink svg {
+            transition: opacity 0.2s ease;
+        }
+        
+        /* Handle anchor scrolling with fixed header offset */
+        html {
+            scroll-padding-top: 2rem;
+        }
+        
+        /* Highlight the target section when linked */
+        :target {
+            animation: highlight 2s ease;
+        }
+        
+        @keyframes highlight {
+            0% { background-color: rgba(255, 255, 0, 0.2); }
+            100% { background-color: transparent; }
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen dark:bg-gray-900">
@@ -197,8 +217,15 @@
             
             // Domain Info
             html += `
-                <div class="bg-blue-50 p-4 rounded-lg">
-                    <h2 class="text-lg font-bold text-blue-800 mb-2">Domain Information</h2>
+                <div id="domain-info" class="bg-blue-50 p-4 rounded-lg relative">
+                    <h2 class="text-lg font-bold text-blue-800 mb-2">
+                        Domain Information
+                        <a href="#domain-info" class="permalink" title="Permalink to this section">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1 opacity-50 hover:opacity-100" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
+                            </svg>
+                        </a>
+                    </h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                         <div class="data-row p-2">
                             <span class="font-semibold">Domain:</span> ${data.ldhName}
@@ -212,8 +239,15 @@
                 // Status
                 if (data.status && data.status.length > 0) {
                     html += `
-                        <div class="bg-green-50 p-4 rounded-lg">
-                            <h2 class="text-lg font-bold text-green-800 mb-2">Domain Status</h2>
+                        <div id="domain-status" class="bg-green-50 p-4 rounded-lg relative">
+                            <h2 class="text-lg font-bold text-green-800 mb-2">
+                                Domain Status
+                                <a href="#domain-status" class="permalink" title="Permalink to this section">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1 opacity-50 hover:opacity-100" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
+                                    </svg>
+                                </a>
+                            </h2>
                             <div class="flex flex-wrap gap-2">
                                 ${data.status.map(status => 
                                     `<span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm">${status}</span>`
@@ -225,8 +259,15 @@
                 // IP Addresses
                 if ((data.ipAddresses?.v4?.length > 0) || (data.ipAddresses?.v6?.length > 0)) {
                     html += `
-                        <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
-                            <h2 class="text-lg font-bold text-red-800 dark:text-red-400 mb-2">IP Addresses</h2>`;
+                        <div id="ip-addresses" class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg relative">
+                            <h2 class="text-lg font-bold text-red-800 dark:text-red-400 mb-2">
+                                IP Addresses
+                                <a href="#ip-addresses" class="permalink" title="Permalink to this section">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1 opacity-50 hover:opacity-100" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
+                                    </svg>
+                                </a>
+                            </h2>`;
                     
                     if (data.ipAddresses.v4?.length > 0) {
                         html += `
@@ -264,8 +305,15 @@
                 // Important Dates
                 if (data.events && data.events.length > 0) {
                     html += `
-                        <div class="bg-purple-50 p-4 rounded-lg">
-                            <h2 class="text-lg font-bold text-purple-800 mb-2">Important Dates</h2>
+                        <div id="important-dates" class="bg-purple-50 p-4 rounded-lg relative">
+                            <h2 class="text-lg font-bold text-purple-800 mb-2">
+                                Important Dates
+                                <a href="#important-dates" class="permalink" title="Permalink to this section">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1 opacity-50 hover:opacity-100" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
+                                    </svg>
+                                </a>
+                            </h2>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                                 ${data.events.map(event => `
                                     <div class="data-row p-2">
@@ -280,8 +328,15 @@
                 // Nameservers
                 if (data.nameservers && data.nameservers.length > 0) {
                     html += `
-                        <div class="bg-yellow-50 p-4 rounded-lg">
-                            <h2 class="text-lg font-bold text-yellow-800 mb-2">Nameservers</h2>
+                        <div id="nameservers" class="bg-yellow-50 p-4 rounded-lg relative">
+                            <h2 class="text-lg font-bold text-yellow-800 mb-2">
+                                Nameservers
+                                <a href="#nameservers" class="permalink" title="Permalink to this section">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1 opacity-50 hover:opacity-100" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
+                                    </svg>
+                                </a>
+                            </h2>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                                 ${data.nameservers.map(ns => `
                                     <div class="data-row p-2">${ns.ldhName}</div>
@@ -556,13 +611,24 @@
             }
         });
 
-        // Check for lookup query parameter on page load
+        // Check for lookup query parameter and hash on page load
         window.addEventListener('load', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const lookupQuery = urlParams.get('lookup');
             if (lookupQuery) {
                 document.getElementById('queryInput').value = lookupQuery;
-                performLookup();
+                performLookup().then(() => {
+                    // After lookup completes, check if there's a hash to scroll to
+                    if (window.location.hash) {
+                        // Small delay to ensure content is rendered
+                        setTimeout(() => {
+                            const targetElement = document.querySelector(window.location.hash);
+                            if (targetElement) {
+                                targetElement.scrollIntoView();
+                            }
+                        }, 500);
+                    }
+                });
             }
         });
     </script>

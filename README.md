@@ -20,6 +20,7 @@ A simple web application for looking up WHOIS, IP, and ASN information using fre
 - 📋 Clear source attribution for all lookups
 - 🔍 DNS resolution for domain IP addresses
 - 🔗 URL query parameter support for direct lookups
+- 🔖 Permalink anchors for sharing specific result sections
 
 ## APIs Used
 
@@ -113,6 +114,14 @@ You can also perform direct lookups by using the `lookup` query parameter in the
 - Domain lookup: `http://localhost:3000/?lookup=google.com`
 - IP lookup: `http://localhost:3000/?lookup=8.8.8.8`
 - ASN lookup: `http://localhost:3000/?lookup=AS13335`
+
+### Permalink Anchors
+
+Each section of the results now has a permalink anchor that allows direct linking to specific information:
+- Click the link icon (🔗) next to any section header to copy a direct link to that section
+- Share links to specific sections, like nameservers or IP addresses: `http://localhost:3000/?lookup=google.com#nameservers`
+- When following a permalink, the page will automatically scroll to the relevant section
+- Sections are briefly highlighted when accessed via permalink for better visibility
 
 ## Example Queries
 
