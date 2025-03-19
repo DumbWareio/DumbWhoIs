@@ -236,6 +236,62 @@
                     </div>
                 </div>`;
 
+                // IP Addresses - Always show this section for domains
+                html += `
+                    <div id="ip-addresses" class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg relative">
+                        <h2 class="text-lg font-bold text-red-800 dark:text-red-400 mb-2">
+                            IP Addresses
+                            <a href="#ip-addresses" class="permalink" title="Permalink to this section">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1 opacity-50 hover:opacity-100" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                        </h2>`;
+                
+                if (data.ipAddresses && data.ipAddresses.v4 && data.ipAddresses.v4.length > 0) {
+                    html += `
+                        <div class="mb-3">
+                            <h3 class="text-sm font-semibold text-red-700 dark:text-red-300 mb-2">IPv4</h3>
+                            <div class="flex flex-wrap gap-2">
+                                ${data.ipAddresses.v4.map(ip => 
+                                    `<button onclick="document.getElementById('queryInput').value='${ip}'; performLookup()" 
+                                             class="bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200 px-3 py-1 rounded-full text-sm hover:bg-red-200 dark:hover:bg-red-700 cursor-pointer transition-colors">
+                                        ${ip}
+                                     </button>`
+                                ).join('')}
+                            </div>
+                        </div>`;
+                } else {
+                    html += `
+                        <div class="mb-3">
+                            <h3 class="text-sm font-semibold text-red-700 dark:text-red-300 mb-2">IPv4</h3>
+                            <div class="text-gray-600 dark:text-gray-400">No IPv4 addresses found</div>
+                        </div>`;
+                }
+                
+                if (data.ipAddresses && data.ipAddresses.v6 && data.ipAddresses.v6.length > 0) {
+                    html += `
+                        <div>
+                            <h3 class="text-sm font-semibold text-red-700 dark:text-red-300 mb-2">IPv6</h3>
+                            <div class="flex flex-wrap gap-2">
+                                ${data.ipAddresses.v6.map(ip => 
+                                    `<button onclick="document.getElementById('queryInput').value='${ip}'; performLookup()" 
+                                             class="bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200 px-3 py-1 rounded-full text-sm hover:bg-red-200 dark:hover:bg-red-700 cursor-pointer transition-colors">
+                                        ${ip}
+                                     </button>`
+                                ).join('')}
+                            </div>
+                        </div>`;
+                } else {
+                    html += `
+                        <div>
+                            <h3 class="text-sm font-semibold text-red-700 dark:text-red-300 mb-2">IPv6</h3>
+                            <div class="text-gray-600 dark:text-gray-400">No IPv6 addresses found</div>
+                        </div>`;
+                }
+                
+                html += `</div>`;
+
                 // Status
                 if (data.status && data.status.length > 0) {
                     html += `
@@ -254,52 +310,6 @@
                                 ).join('')}
                             </div>
                         </div>`;
-                }
-
-                // IP Addresses
-                if ((data.ipAddresses?.v4?.length > 0) || (data.ipAddresses?.v6?.length > 0)) {
-                    html += `
-                        <div id="ip-addresses" class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg relative">
-                            <h2 class="text-lg font-bold text-red-800 dark:text-red-400 mb-2">
-                                IP Addresses
-                                <a href="#ip-addresses" class="permalink" title="Permalink to this section">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1 opacity-50 hover:opacity-100" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
-                                    </svg>
-                                </a>
-                            </h2>`;
-                    
-                    if (data.ipAddresses.v4?.length > 0) {
-                        html += `
-                            <div class="mb-3">
-                                <h3 class="text-sm font-semibold text-red-700 dark:text-red-300 mb-2">IPv4</h3>
-                                <div class="flex flex-wrap gap-2">
-                                    ${data.ipAddresses.v4.map(ip => 
-                                        `<button onclick="document.getElementById('queryInput').value='${ip}'; performLookup()" 
-                                                 class="bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200 px-3 py-1 rounded-full text-sm hover:bg-red-200 dark:hover:bg-red-700 cursor-pointer transition-colors">
-                                            ${ip}
-                                         </button>`
-                                    ).join('')}
-                                </div>
-                            </div>`;
-                    }
-                    
-                    if (data.ipAddresses.v6?.length > 0) {
-                        html += `
-                            <div>
-                                <h3 class="text-sm font-semibold text-red-700 dark:text-red-300 mb-2">IPv6</h3>
-                                <div class="flex flex-wrap gap-2">
-                                    ${data.ipAddresses.v6.map(ip => 
-                                        `<button onclick="document.getElementById('queryInput').value='${ip}'; performLookup()" 
-                                                 class="bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200 px-3 py-1 rounded-full text-sm hover:bg-red-200 dark:hover:bg-red-700 cursor-pointer transition-colors">
-                                            ${ip}
-                                         </button>`
-                                    ).join('')}
-                                </div>
-                            </div>`;
-                    }
-                    
-                    html += `</div>`;
                 }
 
                 // Important Dates
@@ -569,6 +579,8 @@
                     queryTypeDiv.textContent = 'Error';
                     resultContent.innerHTML = `<div class="text-red-600">${data.error}${data.message ? '<br>' + data.message : ''}</div>`;
                 } else {
+                    console.log('Lookup data:', data); // Debug: Log full data
+                    
                     queryTypeDiv.textContent = `Type: ${data.type.toUpperCase()}${
                         data.type === 'ip' ? ` (Source: ${data.data.source})` :
                         data.type === 'asn' ? ' (Source: BGPView)' :
@@ -577,6 +589,8 @@
                     
                     switch (data.type) {
                         case 'whois':
+                            // Debug: Check IP address data
+                            console.log('Domain IP addresses:', data.data.ipAddresses);
                             resultContent.innerHTML = formatWhoisData(data.data);
                             break;
                         case 'ip':
@@ -592,6 +606,7 @@
                     printButton.classList.remove('hidden');
                 }
             } catch (error) {
+                console.error('Lookup error:', error); // Debug: Log errors
                 queryTypeDiv.textContent = 'Error';
                 resultContent.innerHTML = '<div class="text-red-600">Error performing lookup. Please try again.</div>';
             }
