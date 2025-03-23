@@ -1,10 +1,12 @@
-version: '3.8'
-
 services:
-  app:
-    build: .
-    ports:
-      - "3000:3000"
-    environment:
-      - PORT=3000
-    restart: unless-stopped 
+   dumbwhois:
+      image: dumbwareio/dumbwhois:latest
+      # build: .
+      container_name: dumbwhois
+      restart: unless-stopped
+      ports:
+      - ${DUMBWHOIS_PORT:-3000}:3000
+      environment:
+      - SITE_TITLE=${DUMBWHOIS_SITE_TITLE:-DumbWhois}
+      # (Optional) Restrict origins - ex: https://subdomain.domain.tld,https://auth.proxy.tld,http://internalip:port' (empty/default is '*')
+      # - ALLOWED_ORIGINS=${DUMBWHOIS_ALLOWED_ORIGINS:-*}

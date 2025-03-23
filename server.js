@@ -5,15 +5,29 @@ const axios = require('axios');
 const path = require('path');
 const whois = require('node-whois');
 const util = require('util');
+const { getCorsOptions, originValidationMiddleware } = require('./scripts/cors');
+const { generatePWAManifest } = require('./scripts/pwa-manifest-generator');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const SITE_TITLE = process.env.SITE_TITLE || 'DumbWhois';
+const PUBLIC_DIR = path.join(__dirname, 'public');
+const ASSETS_DIR = path.join(PUBLIC_DIR, 'assets');
 
 // Convert whois.lookup to Promise
 const lookupPromise = util.promisify(whois.lookup);
 
-app.use(cors());
+// Trust proxy - required for secure cookies behind a reverse proxy
+app.set('trust proxy', 1);
+
+// CORS setup
+const corsOptions = getCorsOptions();
+app.use(cors(corsOptions));
 app.use(express.json());
+app.use(originValidationMiddleware);
+
+generatePWAManifest(SITE_TITLE);
+
 app.use(express.static('public'));
 
 // Helper function to detect query type
@@ -381,10 +395,29 @@ app.get('/api/lookup/:query', async (req, res) => {
     }
 });
 
+// Serve the pwa/asset manifest
+app.get('/asset-manifest.json', (req, res) => {
+    // generated in pwa-manifest-generator and fetched from service-worker.js
+    res.sendFile(path.join(ASSETS_DIR, 'asset-manifest.json'));
+});
+app.get('/manifest.json', (req, res) => {
+    res.sendFile(path.join(ASSETS_DIR, 'manifest.json'));
+});
+
+app.get('/config', (req, res) => {
+    res.json({
+        siteTitle: SITE_TITLE
+    });
+});
+
+app.get('/managers/toast', (req, res) => {
+    res.sendFile(path.join(PUBLIC_DIR, 'managers', 'toast.js'));
+});
+
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server is running on: http://localhost:${PORT}`);
 }); 
