@@ -2,7 +2,7 @@
 
 A simple web application for looking up WHOIS, IP, and ASN information using free APIs. The application automatically detects the type of query and provides formatted results with a clean, modern UI that supports both light and dark modes.
 
-![image](https://github.com/user-attachments/assets/1f53b683-8974-4c83-9f14-d97aa862d531)
+![image](https://github.com/user-attachments/assets/a4f84c05-c8f8-4e75-9788-dc70adc2ad9b)
 
 
 ## Features
@@ -21,6 +21,8 @@ A simple web application for looking up WHOIS, IP, and ASN information using fre
 - 🔍 DNS resolution for domain IP addresses
 - 🔗 URL query parameter support for direct lookups
 - 🔖 Permalink anchors for sharing specific result sections
+- 🔒 CORS support for cross-origin requests
+- 🌐 PWA Support
 
 ## APIs Used
 
@@ -98,6 +100,21 @@ docker run -p 3000:3000 -d dumbwhois
 Or using Docker Compose:
 ```bash
 docker-compose up -d
+```
+
+docker-compose.yml:
+```yaml
+services:
+   dumbwhois:
+      image: dumbwareio/dumbwhois:latest
+      container_name: dumbwhois
+      restart: unless-stopped
+      ports:
+      - ${DUMBWHOIS_PORT:-3000}:3000
+      environment:
+      - SITE_TITLE=${DUMBWHOIS_SITE_TITLE:-DumbWhois}
+      # (Optional) Restrict origins - ex: https://subdomain.domain.tld,https://auth.proxy.tld,http://internalip:port' (empty/default is '*')
+      # - ALLOWED_ORIGINS=${DUMBWHOIS_ALLOWED_ORIGINS:-*}
 ```
 
 ## Usage
