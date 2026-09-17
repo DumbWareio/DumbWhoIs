@@ -56,6 +56,16 @@ The application uses the following free services:
   - Free to use
   - No authentication required
 
+
+## Easypanel
+
+DumbWhois has a one-click deployment template on [Easypanel](https://easypanel.io), a self-hosted Docker deployment platform.
+
+[![Deploy on Easypanel][easypanel-btn]][easypanel-deploy]
+
+[easypanel-btn]: https://easypanel.io/img/deploy-on-easypanel-40.svg
+[easypanel-deploy]: https://easypanel.io/templates/dumbwhois
+
 ## Setup
 
 ### Standard Setup
