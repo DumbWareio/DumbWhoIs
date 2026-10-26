@@ -14,6 +14,13 @@ const SITE_TITLE = process.env.SITE_TITLE || 'DumbWhois';
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const ASSETS_DIR = path.join(PUBLIC_DIR, 'assets');
 
+// Shared HTTP client for external APIs. ipapi.co's Cloudflare front blocks
+// axios' default User-Agent (403), and RIPEstat can take 15s+ on uncached queries.
+const http = axios.create({
+    timeout: 20000,
+    headers: { 'User-Agent': 'DumbWhois (+https://github.com/DumbWareio/DumbWhois)' }
+});
+
 // Convert whois.lookup to Promise
 const lookupPromise = util.promisify(whois.lookup);
 
@@ -276,9 +283,9 @@ async function fetchASNData(asnNumber) {
 
     // Fetch all endpoints in parallel (PeeringDB is optional, don't fail if unavailable)
     const [whoisResponse, overviewResponse, peeringDbResponse] = await Promise.all([
-        axios.get(whoisUrl),
-        axios.get(overviewUrl),
-        axios.get(peeringDbUrl).catch(() => ({ data: { data: [] } }))
+        http.get(whoisUrl),
+        http.get(overviewUrl),
+        http.get(peeringDbUrl).catch(() => ({ data: { data: [] } }))
     ]);
 
     const whoisData = whoisResponse.data;
@@ -422,11 +429,12 @@ async function tryIpLookup(ip) {
     for (const service of ipLookupServices) {
         try {
             console.log(`Trying IP lookup with ${service.name}...`);
-            const response = await axios.get(service.url(cleanIp));
-            
-            // Check if the service returned an error
-            if (response.data.error) {
-                throw new Error(response.data.message || 'Service returned error');
+            const response = await http.get(service.url(cleanIp));
+
+            // Check if the service returned an error (ipapi.co: error, ip-api.com: status 'fail', ipwho.is: success false)
+            const data = response.data;
+            if (data.error || data.status === 'fail' || data.success === false) {
+                throw new Error(data.reason || data.message || 'Service returned error');
             }
             
             // Transform the data to our standard format
