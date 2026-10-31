@@ -7,7 +7,7 @@ RUN npm ci
 
 COPY . .
 
-FROM node:18-alpine
+FROM node:24.22.1-alpine
 WORKDIR /app
 COPY --from=builder /app .
 
