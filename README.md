@@ -48,6 +48,10 @@ The application uses the following free services:
      - Second fallback service
      - Free with no rate limits
      - No API key required
+  4. [InternetData](https://internetdata.io)
+     - Third fallback service
+     - Country, timezone, currency, ASN and organization
+     - No API key required ([terms](https://internetdata.io/terms#no-key))
 
 - **ASN Lookup**: [RIPEstat API](https://stat.ripe.net/docs/data-api/ripestat-data-api) + [PeeringDB](https://www.peeringdb.com/apidocs/)
   - RIPEstat provides ASN details and WHOIS information
