@@ -270,6 +270,24 @@ const ipLookupServices = [
             asn: data.connection.asn,
             source: 'ipwho.is'
         })
+    },
+    {
+        name: 'internetdata.io',
+        url: (ip) => `https://api.internetdata.io/${ip}`,
+        transform: (data) => ({
+            ip: data.ip,
+            version: data.ip.includes(':') ? 'IPv6' : 'IPv4',
+            network: data.asn?.prefix,
+            country_code: data.location?.country,
+            country_name: data.location?.country_name,
+            continent_code: data.location?.continent,
+            timezone: data.location?.timezone,
+            currency: data.location?.currency_code,
+            currency_name: data.location?.currency_name,
+            org: data.company?.name || data.asn?.name,
+            asn: data.asn ? `AS${data.asn.asn}` : undefined,
+            source: 'internetdata.io'
+        })
     }
 ];
 
